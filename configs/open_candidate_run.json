@@ -1,0 +1,42 @@
+{
+  "output_dir": "/Users/rakshitverma/Documents/ML3/outputs/open_candidate_run",
+  "site": {
+    "site_id": "OPEN_SITE_001",
+    "site_name": "Open Industrial Candidate 001",
+    "metadata": {
+      "env_category": "Unknown",
+      "industrial_area_name": "Open-source candidate boundary"
+    }
+  },
+  "rule": {
+    "rule_name": "Industrial green-belt compliance baseline",
+    "required_green_cover_pct": 15.0
+  },
+  "boundary": {
+    "path": "/Users/rakshitverma/Documents/ML3/outputs/open_udyambag/industrial_candidates.geojson",
+    "feature_index": 1,
+    "crs": "EPSG:4326"
+  },
+  "before_scene": {
+    "npz_path": "/Users/rakshitverma/Documents/ML3/data/open/site_001/before_scene.npz",
+    "acquired_on": "2024-01-24",
+    "origin_x": 74.48,
+    "origin_y": 15.83,
+    "pixel_width": 0.0001,
+    "pixel_height": 0.0001,
+    "crs": "EPSG:4326",
+    "source": "Sentinel-2 L2A S2A_43PDT_20240124_0_L2A",
+    "sensor": "sentinel-2"
+  },
+  "after_scene": {
+    "npz_path": "/Users/rakshitverma/Documents/ML3/data/open/site_001/after_scene.npz",
+    "acquired_on": "2025-01-13",
+    "origin_x": 74.48,
+    "origin_y": 15.83,
+    "pixel_width": 0.0001,
+    "pixel_height": 0.0001,
+    "crs": "EPSG:4326",
+    "source": "Sentinel-2 L2A S2B_43PDT_20250113_0_L2A",
+    "sensor": "sentinel-2"
+  }
+}

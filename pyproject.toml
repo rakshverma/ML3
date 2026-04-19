@@ -1,0 +1,13 @@
+[project]
+name = "ml3"
+version = "0.1.0"
+description = "Computer-vision and geospatial monitoring pipeline for industrial compliance"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.136.0",
+    "numpy>=2.4.4",
+    "pillow>=12.2.0",
+    "pyshp>=3.0.3",
+    "uvicorn>=0.44.0",
+]

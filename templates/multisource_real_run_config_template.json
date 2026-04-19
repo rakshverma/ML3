@@ -1,0 +1,88 @@
+{
+  "output_dir": "../outputs/site_001_multisource_run",
+  "site": {
+    "site_id": "SITE_001",
+    "site_name": "Factory Premises 001",
+    "metadata": {
+      "env_category": "Red",
+      "industrial_area_name": "Replace with actual industrial area"
+    }
+  },
+  "rule": {
+    "rule_name": "Industrial green-belt compliance baseline",
+    "required_green_cover_pct": 15.0
+  },
+  "ml_models": {
+    "train_from_current_run": false,
+    "bundle_path": "../outputs/site_001_multisource_run/trained_monitoring_models.json",
+    "max_samples_per_scene": 30000
+  },
+  "boundary": {
+    "path": "../data/raw/kgis/premises/site_001_boundary.zip",
+    "feature_index": 0
+  },
+  "before_composite": {
+    "acquired_on": "2024-01-15",
+    "source": "Sentinel-2 + Landsat before composite",
+    "sensor_weights": {
+      "sentinel-2": 1.0,
+      "landsat-8": 0.75
+    },
+    "scenes": [
+      {
+        "sensor": "sentinel-2",
+        "npz_path": "../data/real/site_001/before_s2_scene.npz",
+        "acquired_on": "2024-01-12",
+        "origin_x": 555000.0,
+        "origin_y": 1762500.0,
+        "pixel_width": 10.0,
+        "pixel_height": 10.0,
+        "crs": "EPSG:32643",
+        "source": "Sentinel-2 SR"
+      },
+      {
+        "sensor": "landsat-8",
+        "npz_path": "../data/real/site_001/before_l8_scene.npz",
+        "acquired_on": "2024-01-16",
+        "origin_x": 555000.0,
+        "origin_y": 1762500.0,
+        "pixel_width": 10.0,
+        "pixel_height": 10.0,
+        "crs": "EPSG:32643",
+        "source": "Landsat 8 SR"
+      }
+    ]
+  },
+  "after_composite": {
+    "acquired_on": "2025-01-18",
+    "source": "Sentinel-2 + Landsat after composite",
+    "sensor_weights": {
+      "sentinel-2": 1.0,
+      "landsat-9": 0.75
+    },
+    "scenes": [
+      {
+        "sensor": "sentinel-2",
+        "npz_path": "../data/real/site_001/after_s2_scene.npz",
+        "acquired_on": "2025-01-17",
+        "origin_x": 555000.0,
+        "origin_y": 1762500.0,
+        "pixel_width": 10.0,
+        "pixel_height": 10.0,
+        "crs": "EPSG:32643",
+        "source": "Sentinel-2 SR"
+      },
+      {
+        "sensor": "landsat-9",
+        "npz_path": "../data/real/site_001/after_l9_scene.npz",
+        "acquired_on": "2025-01-20",
+        "origin_x": 555000.0,
+        "origin_y": 1762500.0,
+        "pixel_width": 10.0,
+        "pixel_height": 10.0,
+        "crs": "EPSG:32643",
+        "source": "Landsat 9 SR"
+      }
+    ]
+  }
+}
