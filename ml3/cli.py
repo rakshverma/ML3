@@ -6,6 +6,7 @@ import json
 import uvicorn
 
 from ml3.continuous import run_continuous_monitoring
+from ml3.tk_ui import launch_desktop_ui
 from ml3.workflows import (
     discover_open_industrial_workflow,
     inspect_kgis_workflow,
@@ -65,6 +66,11 @@ def build_parser() -> argparse.ArgumentParser:
     serve_parser.add_argument("--host", default="127.0.0.1")
     serve_parser.add_argument("--port", type=int, default=8000)
 
+    subparsers.add_parser(
+        "run-ui",
+        help="Launch the desktop Tkinter monitoring studio",
+    )
+
     return parser
 
 
@@ -101,6 +107,10 @@ def main() -> None:
 
     if args.command == "serve":
         uvicorn.run("ml3.api:app", host=args.host, port=args.port, reload=False)
+        return
+
+    if args.command == "run-ui":
+        launch_desktop_ui()
         return
 
     parser.error(f"Unknown command: {args.command}")

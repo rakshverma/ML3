@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import tempfile
 import zipfile
 from datetime import date, datetime
@@ -28,7 +29,92 @@ def inspect_boundary_source(path: str | Path) -> KGISInspectionResult:
     if suffix == ".shp":
         return _inspect_shapefile(source_path, source_path)
 
-    raise ValueError("Only zipped shapefiles (.zip) and .shp layers are supported right now.")
+    if suffix in {".geojson", ".json"}:
+        return _inspect_geojson(source_path)
+
+    raise ValueError("Supported boundary formats: .zip shapefile, .shp, .geojson, and .json (GeoJSON).")
+
+
+def _inspect_geojson(source_path: Path) -> KGISInspectionResult:
+    payload = json.loads(source_path.read_text(encoding="utf-8"))
+    payload_type = str(payload.get("type", "")).lower()
+
+    if payload_type == "featurecollection":
+        features = payload.get("features") or []
+    elif payload_type == "feature":
+        features = [payload]
+    elif payload_type:
+        features = [{"type": "Feature", "properties": {}, "geometry": payload}]
+    else:
+        raise ValueError("Invalid GeoJSON: missing geometry type.")
+
+    if not isinstance(features, list) or not features:
+        raise ValueError("GeoJSON has no features to inspect.")
+
+    geometry_types: set[str] = set()
+    fields: set[str] = set()
+    sample_record: dict[str, Any] = {}
+    all_coords: list[tuple[float, float]] = []
+
+    for feature in features:
+        if not isinstance(feature, dict):
+            continue
+        geometry = feature.get("geometry") or {}
+        geometry_type = str(geometry.get("type", "Unknown"))
+        geometry_types.add(geometry_type)
+
+        coordinates = geometry.get("coordinates")
+        all_coords.extend(_extract_xy_pairs(coordinates))
+
+        props = feature.get("properties") or {}
+        if isinstance(props, dict):
+            fields.update(str(key) for key in props.keys())
+            if not sample_record:
+                normalized = _normalize_value_dict(props)
+                non_empty = {key: value for key, value in normalized.items() if value not in ("", 0, None)}
+                if non_empty:
+                    sample_record = non_empty
+
+    if all_coords:
+        xs = [xy[0] for xy in all_coords]
+        ys = [xy[1] for xy in all_coords]
+        bbox = (min(xs), min(ys), max(xs), max(ys))
+    else:
+        bbox = (0.0, 0.0, 0.0, 0.0)
+
+    geometry_type_summary = ", ".join(sorted(geometry_types)) if geometry_types else "Unknown"
+    geometry_upper = geometry_type_summary.upper()
+    notes: list[str] = []
+    if "POLYGON" not in geometry_upper:
+        notes.append("Area-based green-cover compliance needs polygon premises boundaries in a later iteration.")
+
+    crs_wkt = None
+    crs_payload = payload.get("crs")
+    if crs_payload is not None:
+        crs_wkt = json.dumps(crs_payload)
+
+    return KGISInspectionResult(
+        source_path=source_path,
+        extracted_layer_path=source_path,
+        geometry_type=geometry_type_summary,
+        record_count=len(features),
+        bbox=(float(bbox[0]), float(bbox[1]), float(bbox[2]), float(bbox[3])),
+        fields=sorted(fields),
+        sample_record=sample_record,
+        crs_wkt=crs_wkt,
+        notes=notes,
+    )
+
+
+def _extract_xy_pairs(node: Any) -> list[tuple[float, float]]:
+    if not isinstance(node, list):
+        return []
+    if len(node) >= 2 and isinstance(node[0], (int, float)) and isinstance(node[1], (int, float)):
+        return [(float(node[0]), float(node[1]))]
+    coords: list[tuple[float, float]] = []
+    for child in node:
+        coords.extend(_extract_xy_pairs(child))
+    return coords
 
 
 def _inspect_shapefile(source_path: Path, shapefile_path: Path) -> KGISInspectionResult:

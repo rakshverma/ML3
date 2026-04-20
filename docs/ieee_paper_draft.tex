@@ -1,0 +1,147 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{xcolor}
+
+\title{A GIS-Driven Satellite Monitoring System for Industrial Green-Belt Compliance and Change Detection}
+
+\author{\IEEEauthorblockN{Rakshit Verma}
+\IEEEauthorblockA{Independent Research and Development\\
+Email: rakshit@example.com}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper presents a practical monitoring system for pollution-control workflows that integrates industrial-premises boundaries with multi-temporal satellite imagery to detect vegetation decline and potential construction change inside monitored premises. The system combines geometry-aware raster masking, spectral-rule baselines, optional pixel-level trainable models, and automated compliance reporting. A desktop-first user interface was designed to remove direct JSON interaction and support operations teams through human-readable results and guided input validation. Results include before-vs-after metrics, georeferenced violation alerts, and annotated visual evidence panels suitable for regulatory review and periodic monitoring.
+\end{abstract}
+
+\begin{IEEEkeywords}
+GIS, industrial compliance, remote sensing, Sentinel-2, land-use change, NDVI, environmental monitoring
+\end{IEEEkeywords}
+
+\section{Introduction}
+Environmental compliance monitoring in industrial areas requires site-specific boundaries, consistent temporal analysis, and auditable evidence generation. Manual inspections are expensive and sparse, while many digital workflows fail due to fragmented boundary data, inconsistent imagery handling, and non-operational reporting outputs. This work addresses these gaps by building an end-to-end monitoring pipeline focused on: (i) premise identification from GIS boundaries, (ii) temporal vegetation and built-up change analysis, (iii) report generation with geo-coordinates and annotated imagery, and (iv) scalable repeat monitoring.
+
+\section{System Objectives}
+The implemented system targets five operational objectives:
+\begin{enumerate}
+    \item Identify factory premises from KGIS/KIADB style boundary inputs.
+    \item Analyze multi-date satellite scenes to detect green-cover reduction and construction change candidates.
+    \item Apply model-driven vegetation and land-use classification (rule-driven baseline with optional trainable pixel models).
+    \item Generate compliance reports with temporal statistics, georeferenced alerts, and visual evidence.
+    \item Support continuous, repeatable monitoring runs for board-level operations.
+\end{enumerate}
+
+\section{Architecture}
+\subsection{Data Ingestion}
+Boundary inputs are accepted as zipped shapefiles, shapefiles, and GeoJSON. Premise polygons are rasterized onto the analysis grid using affine transforms and CRS checks.
+
+Satellite scenes are provided as pre-aligned multispectral arrays (blue, green, red, NIR, optional SWIR) in NPZ format. For open-data execution, Sentinel-2 L2A scenes are discovered via STAC and reprojected to EPSG:4326 analysis grids.
+
+\subsection{Monitoring Core}
+For each premise and time pair (before, after), the pipeline computes:
+\begin{itemize}
+    \item Vegetation masks based on NDVI thresholds or optional model inference.
+    \item Built-up masks using NDBI-style logic and spectral constraints or optional model inference.
+    \item Green-loss and new-construction candidate masks as temporal differencing outputs.
+\end{itemize}
+Connected regions are extracted and filtered by minimum area and pixel constraints.
+
+\subsection{Model Layer}
+Two operation modes are supported:
+\begin{itemize}
+    \item \textbf{Spectral-rules mode:} deterministic NDVI/NDBI-based classification.
+    \item \textbf{ML mode:} trainable pixel logistic models for vegetation and built-up classes, with model bundle save/load for repeat use.
+\end{itemize}
+
+\subsection{Reporting Layer}
+The reporting module produces:
+\begin{itemize}
+    \item Compliance JSON and Markdown reports.
+    \item Before/after annotated images.
+    \item Comparison panels with temporal metadata.
+    \item Alert entries containing severity, type, and geo-coordinates.
+\end{itemize}
+
+\section{Desktop Operations Interface}
+A Tkinter desktop studio was implemented to make the workflow operator-friendly and executable as a packaged desktop application. The interface includes:
+\begin{itemize}
+    \item Boundary inspection with direct file upload and geometry diagnostics.
+    \item OSM candidate discovery with region query and output management.
+    \item Compliance analysis form with guided required inputs and no raw JSON display.
+    \item Continuous monitoring tab for scheduled repeated runs and history review.
+\end{itemize}
+Outputs are presented in human-readable summaries and tabular alert views.
+
+\section{Methodology}
+\subsection{Premise Masking}
+Given affine transform $T$, each polygon is rasterized onto the scene grid. Invalid overlap and CRS mismatch are explicitly rejected to prevent silent geometric errors.
+
+\subsection{Temporal Vegetation Change}
+NDVI is computed per pixel:
+\begin{equation}
+\mathrm{NDVI} = \frac{NIR - Red}{NIR + Red + \epsilon}
+\end{equation}
+Vegetation masks $V_b$ and $V_a$ for before and after dates produce green-loss mask:
+\begin{equation}
+L_g = V_b \land \neg V_a
+\end{equation}
+
+\subsection{Construction Candidate Detection}
+Built-up masks $B_b$ and $B_a$ are estimated from NDBI-style features and thresholds (or learned classifier), then differenced:
+\begin{equation}
+C_n = B_a \land \neg B_b
+\end{equation}
+Connected components in $C_n$ are filtered by minimum pixel and area constraints.
+
+\subsection{Compliance Scoring}
+Metrics include green-cover percentage before/after, delta in percentage points, green-loss area, and new-construction area. Alerts are triggered when:
+\begin{itemize}
+    \item Green cover falls below required threshold.
+    \item Green-cover reduction exceeds allowed drop.
+    \item New construction candidate regions exceed minimum area.
+\end{itemize}
+
+\section{Experimental Run Summary}
+In the implemented open-data run over Udyambag, Sentinel-2 scenes were selected for two dates and evaluated against an OSM-derived industrial polygon. Generated artifacts included report documents, annotated evidence images, and temporal metrics. The workflow executed end-to-end through the CLI and desktop UI paths.
+
+\section{Scalability and Deployment}
+Continuous monitoring is supported through batch iterations and interval-based reruns with persisted history outputs. This supports monthly or quarterly compliance pipelines, trend dashboards, and future scheduler integration.
+
+The desktop-first design supports packaging into a standalone executable for board or field use without requiring API deployment.
+
+\section{Limitations and Future Work}
+Current limitations include dependence on NPZ scene packaging and screening-level construction detection at medium resolution. Future improvements include:
+\begin{itemize}
+    \item Direct GeoTIFF ingestion.
+    \item Strongly supervised model training from validated labels.
+    \item High-resolution imagery integration for finer construction detection.
+    \item Automated report export to board-standard PDF templates.
+\end{itemize}
+
+\section{Conclusion}
+This work demonstrates a practical and extensible compliance-monitoring system that bridges GIS premise boundaries, satellite time-series analysis, model-enabled classification, and operation-ready reporting. By adding a human-readable desktop interface and repeat-run support, the system is positioned for real-world environmental board workflows.
+
+\begin{thebibliography}{99}
+\bibitem{sentinel2}
+ESA, ``Sentinel-2 Mission,'' \url{https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-2}.
+
+\bibitem{s2sr}
+Google Earth Engine, ``COPERNICUS/S2\_SR\_HARMONIZED,'' \url{https://developers.google.com/earth-engine/datasets/catalog/COPERNICUS_S2_SR_HARMONIZED}.
+
+\bibitem{dynamicworld}
+Google Earth Engine, ``GOOGLE/DYNAMICWORLD/V1,'' \url{https://developers.google.com/earth-engine/datasets/catalog/GOOGLE_DYNAMICWORLD_V1}.
+
+\bibitem{s1}
+ESA, ``Sentinel-1 Mission,'' \url{https://www.esa.int/Applications/Observing_the_Earth/Copernicus/Sentinel-1}.
+
+\bibitem{kiadb}
+KIADB GIS Portal, \url{https://kiadb.karnataka.gov.in/kiadbgisportal/}.
+\end{thebibliography}
+
+\end{document}

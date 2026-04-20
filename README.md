@@ -35,6 +35,12 @@ Run continuous monitoring cycles:
 uv run python -m ml3 run-continuous path/to/your_run_config.json --iterations 12 --interval-seconds 3600
 ```
 
+Launch the desktop UI (human-readable workflow, no direct JSON editing required in UI):
+
+```bash
+uv run python -m ml3 run-ui
+```
+
 Run the FastAPI interface:
 
 ```bash
@@ -75,6 +81,7 @@ What the current baseline implements:
 - alert generation with geo-coordinates
 - annotated evidence imagery and compliance reports
 - continuous run history logging for scalable monitoring operations
+- modern Tkinter desktop studio with guided file selection for boundary and scene inputs
 
 Start here:
 
